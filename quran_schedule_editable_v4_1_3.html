@@ -1,0 +1,1610 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>جدول حفظ آيات الصلاة v4.1.3</title>
+  <style>
+    :root {
+      --bg: #f8f8f5;
+      --card: #ffffff;
+      --text: #202124;
+      --muted: #6b6f76;
+      --line: #e5e0d8;
+      --accent: #255c48;
+      --accent-soft: #e7f0ec;
+      --danger: #8a2f2f;
+      --warn-bg: #fff7e6;
+      --warn-line: #f1d39a;
+      --shadow: 0 10px 30px rgba(0,0,0,.06);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.9;
+    }
+
+    button, input, textarea, select { font: inherit; }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      align-items: center;
+      padding: 26px clamp(16px,5vw,56px);
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,255,255,.9);
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      backdrop-filter: blur(10px);
+    }
+
+    h1,h2,h3,p { margin-top: 0; }
+
+    h1 {
+      margin-bottom: 4px;
+      font-size: clamp(24px,4vw,40px);
+    }
+
+    h2 { font-size: 22px; }
+    h3 { margin-bottom: 6px; }
+
+    .topbar p,
+    .hint,
+    #dayMeta,
+    .ayah-ref,
+    .empty,
+    .muted {
+      color: var(--muted);
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: flex-start;
+      align-items: center;
+    }
+
+    button,
+    .file-label {
+      border: 0;
+      border-radius: 14px;
+      background: var(--accent);
+      color: white;
+      padding: 10px 16px;
+      cursor: pointer;
+      white-space: nowrap;
+      text-align: center;
+    }
+
+    .secondary {
+      background: #fffdf9;
+      color: var(--text);
+      border: 1px solid var(--line);
+    }
+
+    .danger { background: var(--danger); }
+
+    .small-btn {
+      padding: 7px 12px;
+      border-radius: 11px;
+      font-size: 14px;
+    }
+
+    button:hover,
+    .file-label:hover { opacity: .92; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 24px;
+      padding: 24px clamp(16px,5vw,56px);
+    }
+
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .panel,
+    .current-card,
+    .session-card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+    }
+
+    .panel { padding: 18px; }
+
+    .panel h2 {
+      font-size: 18px;
+      margin-bottom: 12px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    input[type="date"],
+    input[type="text"],
+    textarea,
+    select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 10px 12px;
+      background: #fffdf9;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+
+    textarea {
+      min-height: 105px;
+      resize: vertical;
+      direction: rtl;
+    }
+
+    .large-textarea {
+      min-height: 190px;
+      font-family: "Traditional Arabic", "Amiri", "Scheherazade New", "Segoe UI", Tahoma, serif;
+      font-size: 24px;
+      line-height: 2;
+    }
+
+    .days-grid {
+      display: grid;
+      grid-template-columns: repeat(5,1fr);
+      gap: 8px;
+    }
+
+    .day-button {
+      background: #fffdf9;
+      color: var(--text);
+      border: 1px solid var(--line);
+      padding: 8px 0;
+      border-radius: 12px;
+    }
+
+    .day-button.active {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    .search-results {
+      display: grid;
+      gap: 8px;
+      max-height: 260px;
+      overflow: auto;
+      padding-left: 4px;
+    }
+
+    .search-result {
+      width: 100%;
+      white-space: normal;
+      text-align: right;
+      background: #fffdf9;
+      color: var(--text);
+      border: 1px solid var(--line);
+      padding: 9px 10px;
+      border-radius: 12px;
+      line-height: 1.6;
+    }
+
+    .search-result strong {
+      color: var(--accent);
+    }
+
+    .content { min-width: 0; }
+
+    .current-card {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      padding: 22px;
+      margin-bottom: 18px;
+    }
+
+    .eyebrow {
+      display: block;
+      color: var(--accent);
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .badge {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-radius: 999px;
+      padding: 10px 16px;
+      font-weight: 800;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .tab {
+      background: #fffdf9;
+      color: var(--text);
+      border: 1px solid var(--line);
+    }
+
+    .tab.active {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    .sessions {
+      display: grid;
+      gap: 16px;
+    }
+
+    .session-card { padding: 22px; }
+
+    .session-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: start;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 12px;
+      margin-bottom: 14px;
+    }
+
+    .session-title-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .prayer {
+      color: var(--accent);
+      font-weight: 900;
+      font-size: 20px;
+    }
+
+    .raka-label {
+      display: inline-block;
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-radius: 999px;
+      padding: 3px 10px;
+      font-weight: 800;
+      font-size: 14px;
+    }
+
+    .ayah-ref {
+      margin-bottom: 12px;
+      font-size: 15px;
+    }
+
+    .ayah-text {
+      font-family: "Traditional Arabic","Amiri","Scheherazade New","Segoe UI",Tahoma,serif;
+      font-size: clamp(24px,3.2vw,34px);
+      line-height: 2.2;
+      color: #171717;
+      white-space: pre-wrap;
+    }
+
+    audio {
+      width: 100%;
+      margin-top: 14px;
+    }
+
+    .audio-missing,
+    .notice,
+    .empty-session {
+      background: var(--warn-bg);
+      border: 1px solid var(--warn-line);
+      color: #755300;
+      padding: 10px 12px;
+      border-radius: 12px;
+      margin-top: 12px;
+    }
+
+    .empty-session { font-size: 16px; }
+
+    .notes { margin-top: 18px; }
+
+    .edit-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .edit-grid .full { grid-column: 1 / -1; }
+
+    .hidden { display: none !important; }
+
+    input[type="file"] { display: none; }
+
+    .save-status {
+      color: var(--accent);
+      font-weight: 700;
+      min-height: 30px;
+      margin-top: 10px;
+    }
+
+    code {
+      direction: ltr;
+      display: inline-block;
+      background: #f1eee7;
+      border-radius: 8px;
+      padding: 1px 6px;
+      font-family: Consolas, monospace;
+    }
+
+    .quick-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .jump-box {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 10px 12px;
+      box-shadow: var(--shadow);
+    }
+
+    .jump-box input {
+      width: 84px;
+      margin: 0;
+      text-align: center;
+    }
+
+    .progress-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .progress-item {
+      background: var(--accent-soft);
+      border: 1px solid #d6e5df;
+      border-radius: 16px;
+      padding: 12px 14px;
+    }
+
+    .progress-item strong {
+      display: block;
+      color: var(--accent);
+      margin-bottom: 2px;
+    }
+
+    details.days-details summary {
+      cursor: pointer;
+      font-weight: 800;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+
+    .print-only {
+      display: none;
+    }
+
+    .print-day {
+      break-inside: avoid;
+      page-break-inside: avoid;
+      border-bottom: 1px solid #ddd;
+      padding: 14px 0;
+    }
+
+    .print-day h2 {
+      font-size: 20px;
+      margin-bottom: 8px;
+    }
+
+    .print-prayer {
+      margin: 10px 0 18px;
+    }
+
+    .print-prayer h3 {
+      font-size: 18px;
+      margin-bottom: 6px;
+    }
+
+    .print-session {
+      margin: 8px 0 14px;
+      padding-right: 12px;
+      border-right: 3px solid #ddd;
+    }
+
+    .print-session h4 {
+      font-size: 16px;
+      margin: 0 0 2px;
+    }
+
+    .print-ayah {
+      white-space: pre-wrap;
+      font-family: "Traditional Arabic", "Amiri", "Scheherazade New", serif;
+      font-size: 20px;
+      line-height: 1.9;
+    }
+
+    .audio-box {
+      margin-top: 14px;
+    }
+
+    .audio-failed {
+      background: var(--warn-bg);
+      border: 1px solid var(--warn-line);
+      color: #755300;
+      padding: 10px 12px;
+      border-radius: 12px;
+      margin-top: 12px;
+    }
+
+    .audio-failed code {
+      direction: ltr;
+      unicode-bidi: embed;
+      display: inline-block;
+      margin-top: 4px;
+    }
+
+    .highlight-session {
+      outline: 3px solid var(--accent);
+      outline-offset: 4px;
+      transition: outline .2s ease;
+    }
+
+    @media print {
+      body {
+        background: white;
+        color: black;
+        line-height: 1.7;
+      }
+
+      .topbar,
+      .sidebar,
+      .quick-nav,
+      .current-card,
+      #viewSection,
+      #editSection {
+        display: none !important;
+      }
+
+      .layout {
+        display: block;
+        padding: 0;
+      }
+
+      .content {
+        display: block;
+      }
+
+      .print-only {
+        display: block !important;
+      }
+
+      .print-only h1 {
+        font-size: 26px;
+        margin-bottom: 6px;
+      }
+
+      .print-meta {
+        color: #555;
+        margin-bottom: 18px;
+      }
+
+      @page {
+        margin: 18mm 14mm;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .topbar {
+        position: static;
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .layout { grid-template-columns: 1fr; }
+
+      .current-card,
+      .session-header { flex-direction: column; }
+
+      .days-grid { grid-template-columns: repeat(6,1fr); }
+
+      .edit-grid { grid-template-columns: 1fr; }
+      .progress-strip { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="topbar">
+    <div>
+      <h1>جدول حفظ آيات الصلاة</h1>
+      <p>جدول يومي محلي للحفظ والمراجعة: يعرض يوم الدورة الحالي مباشرة، مع ركعتي الفجر والمغرب والعشاء.</p>
+    </div>
+
+    <div class="actions">
+      <button id="todayBtn" type="button">اذهب إلى يومي الحالي</button>
+      <button id="viewModeBtn" class="secondary" type="button">عرض</button>
+      <button id="editModeBtn" type="button">تحرير المقاطع</button>
+      <button id="printPlanBtn" class="secondary" type="button">طباعة خطة الستين يومًا</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <aside class="sidebar">
+      <section class="panel">
+        <h2>إعداد الدورة</h2>
+        <label for="startDate">تاريخ بداية اليوم 1</label>
+        <input id="startDate" type="date" />
+        <p class="hint">بعد تحديد تاريخ البداية، يحسب الموقع اليوم تلقائيًا من 1 إلى 60، ثم يعيد الدورة.</p>
+      </section>
+
+      <section class="panel">
+        <details class="days-details">
+          <summary>اختيار من كل الأيام</summary>
+          <div id="daysGrid" class="days-grid"></div>
+        </details>
+      </section>
+
+      <section class="panel">
+        <h2>بحث في الجدول</h2>
+        <label for="searchInput">ابحث عن سورة، آية، كلمة...</label>
+        <input id="searchInput" type="text" placeholder="مثال: البقرة، الركعة الأولى، الفجر" />
+        <div id="searchResults" class="search-results"></div>
+      </section>
+
+      <section class="panel">
+        <h2>الحفظ والنسخ</h2>
+        <p class="hint">التصدير يحفظ الآيات والملاحظات وتاريخ بداية الدورة في ملف واحد.</p>
+        <div class="actions">
+          <button id="exportBtn" type="button">تصدير نسخة</button>
+          <label class="file-label secondary" for="importFile">استيراد نسخة</label>
+          <input id="importFile" type="file" accept="application/json" />
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>نظام الصوت</h2>
+        <p class="hint">الأفضل تسمية الملفات حسب اليوم والصلاة والركعة:</p>
+        <p class="hint"><code>audio/husary/day-01-fajr-r1.mp3</code></p>
+        <p class="hint"><code>audio/husary/day-01-fajr-r2.mp3</code></p>
+        <p class="hint"><code>audio/husary/day-01-maghrib-r1.mp3</code></p>
+        <p class="hint"><code>audio/husary/day-01-isha-r2.mp3</code></p>
+      </section>
+
+      <section class="panel">
+        <h2>اقتراح الآيات</h2>
+        <p class="hint">للاقتراح قل لي هنا: “اقترح اليوم 7”، ثم انسخ المقاطع إلى صفحة التحرير. الموقع نفسه محلي ولا يتصل بالذكاء الاصطناعي.</p>
+      </section>
+    </aside>
+
+    <section class="content">
+      <div class="quick-nav">
+        <button id="prevDayBtn" class="secondary" type="button">اليوم السابق</button>
+        <button id="currentCycleBtn" type="button">اليوم الحالي</button>
+        <button id="nextDayBtn" class="secondary" type="button">اليوم التالي</button>
+
+        <div class="jump-box">
+          <label for="jumpDayInput" style="margin:0;">اذهب إلى يوم رقم:</label>
+          <input id="jumpDayInput" type="text" inputmode="numeric" placeholder="1–60" />
+          <button id="jumpDayBtn" class="small-btn" type="button">اذهب</button>
+        </div>
+      </div>
+
+      <div class="progress-strip">
+        <div class="progress-item">
+          <strong id="progressCurrent">اليوم الحالي: — / 60</strong>
+          <span>بحسب تاريخ بداية الدورة</span>
+        </div>
+        <div class="progress-item">
+          <strong id="progressRemaining">باقي على نهاية الدورة: —</strong>
+          <span>حتى يكتمل اليوم 60</span>
+        </div>
+        <div class="progress-item">
+          <strong id="progressPercent">نسبة الإنجاز: —</strong>
+          <span>تقريبًا من كامل الدورة</span>
+        </div>
+        <div class="progress-item">
+          <strong id="progressStartDate">تاريخ بداية الدورة: —</strong>
+          <span>يمكن تعديله من الإعدادات</span>
+        </div>
+      </div>
+
+      <div class="current-card">
+        <div>
+          <span class="eyebrow" id="dayEyebrow">ورد اليوم من الدورة</span>
+          <h2 id="dayTitle">اليوم 1</h2>
+          <p id="dayMeta"></p>
+        </div>
+        <div class="badge" id="cycleBadge">1 / 60</div>
+      </div>
+
+      <section id="viewSection">
+        <div id="sessions" class="sessions"></div>
+
+        <section class="notes panel">
+          <h2>ملاحظات اليوم</h2>
+          <textarea id="notes" placeholder="اكتب ملاحظاتك أو درجة حفظك لهذا اليوم..."></textarea>
+        </section>
+      </section>
+
+      <section id="editSection" class="hidden">
+        <div class="panel">
+          <h2 id="editHeading">تحرير المقاطع</h2>
+          <p class="hint">اختر الصلاة والركعة، أو اضغط “تعديل” بجانب الركعة من صفحة العرض.</p>
+
+          <div class="tabs" id="prayerTabs"></div>
+
+          <div class="edit-grid">
+            <div>
+              <label for="editPrayer">الصلاة</label>
+              <select id="editPrayer">
+                <option value="الفجر">الفجر</option>
+                <option value="المغرب">المغرب</option>
+                <option value="العشاء">العشاء</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="editRaka">الركعة</label>
+              <select id="editRaka">
+                <option value="r1">الركعة الأولى</option>
+                <option value="r2">الركعة الثانية</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="editTitle">عنوان المقطع</label>
+              <input id="editTitle" type="text" placeholder="مثال: أواخر سورة البقرة" />
+            </div>
+
+            <div>
+              <label for="editSurah">السورة</label>
+              <input id="editSurah" type="text" placeholder="مثال: البقرة" />
+            </div>
+
+            <div>
+              <label for="editVerses">أرقام الآيات</label>
+              <input id="editVerses" type="text" placeholder="مثال: 285–286" />
+            </div>
+
+            <div class="full">
+              <label for="editText">نص الآيات</label>
+              <textarea id="editText" class="large-textarea" placeholder="ضع نص الآيات هنا"></textarea>
+            </div>
+
+            <div class="full">
+              <label for="editAudio">مسار الصوت أو رابط MP3</label>
+              <input id="editAudio" type="text" placeholder="اختياري: اتركه فارغًا لاستخدام المسار التلقائي، أو ضع رابط/مسار صوت يدوي" />
+            </div>
+          </div>
+
+          <div class="actions">
+            <button id="saveSessionBtn" type="button">حفظ هذا المقطع</button>
+            <button id="clearSessionBtn" class="danger" type="button">تفريغ وحفظ</button>
+            <button id="cancelEditBtn" class="secondary" type="button">رجوع للعرض</button>
+          </div>
+
+          <div id="saveStatus" class="save-status"></div>
+
+          <div class="notice">
+            تنبيه: إذا مسحت بيانات المتصفح فقد تضيع التعديلات. استخدم “تصدير نسخة” لحفظ جدولك في ملف JSON.
+          </div>
+        </div>
+      </section>
+
+      <section id="printSection" class="print-only"></section>
+    </section>
+  </main>
+
+  <script>
+    const TOTAL_DAYS = 60;
+
+    const STORAGE_START_DATE = "quranScheduleStartDate_v4";
+    const STORAGE_PLAN = "quranSchedulePlan_v4_1_3";
+    const STORAGE_NOTES = "quranScheduleNotes_v4";
+
+    const OLD_STORAGE_PLAN_V4 = "quranSchedulePlan_v4";
+    const OLD_STORAGE_PLAN_V3 = "quranSchedulePlan_v3";
+    const OLD_STORAGE_PLAN_V2 = "quranSchedulePlan_v2";
+    const OLD_NOTES_PREFIX_V3 = "quranScheduleNotesDay_v3_";
+    const OLD_NOTES_PREFIX_V2 = "quranScheduleNotesDay_v2_";
+
+    const PRAYERS = ["الفجر", "المغرب", "العشاء"];
+    const RAKAS = [
+      { value: "r1", label: "الركعة الأولى" },
+      { value: "r2", label: "الركعة الثانية" }
+    ];
+
+    const defaultPlan = Array.from({ length: TOTAL_DAYS }, (_, index) => ({
+      day: index + 1,
+      sessions: createEmptySessions()
+    }));
+
+    let quranPlan = loadPlan();
+    let notesByDay = loadNotes();
+    let selectedDay = 1;
+    let selectedPrayer = "الفجر";
+    let selectedRaka = "r1";
+    let mode = "view";
+
+    const startDateInput = document.getElementById("startDate");
+    const todayBtn = document.getElementById("todayBtn");
+    const prevDayBtn = document.getElementById("prevDayBtn");
+    const currentCycleBtn = document.getElementById("currentCycleBtn");
+    const nextDayBtn = document.getElementById("nextDayBtn");
+    const jumpDayInput = document.getElementById("jumpDayInput");
+    const jumpDayBtn = document.getElementById("jumpDayBtn");
+    const printPlanBtn = document.getElementById("printPlanBtn");
+    const viewModeBtn = document.getElementById("viewModeBtn");
+    const editModeBtn = document.getElementById("editModeBtn");
+    const daysGrid = document.getElementById("daysGrid");
+    const searchInput = document.getElementById("searchInput");
+    const searchResults = document.getElementById("searchResults");
+    const dayTitle = document.getElementById("dayTitle");
+    const dayEyebrow = document.getElementById("dayEyebrow");
+    const dayMeta = document.getElementById("dayMeta");
+    const cycleBadge = document.getElementById("cycleBadge");
+    const progressCurrent = document.getElementById("progressCurrent");
+    const progressRemaining = document.getElementById("progressRemaining");
+    const progressPercent = document.getElementById("progressPercent");
+    const progressStartDate = document.getElementById("progressStartDate");
+    const sessionsContainer = document.getElementById("sessions");
+    const notesArea = document.getElementById("notes");
+    const viewSection = document.getElementById("viewSection");
+    const editSection = document.getElementById("editSection");
+    const prayerTabs = document.getElementById("prayerTabs");
+    const editHeading = document.getElementById("editHeading");
+
+    const editPrayer = document.getElementById("editPrayer");
+    const editRaka = document.getElementById("editRaka");
+    const editTitle = document.getElementById("editTitle");
+    const editSurah = document.getElementById("editSurah");
+    const editVerses = document.getElementById("editVerses");
+    const editText = document.getElementById("editText");
+    const editAudio = document.getElementById("editAudio");
+    const saveSessionBtn = document.getElementById("saveSessionBtn");
+    const clearSessionBtn = document.getElementById("clearSessionBtn");
+    const cancelEditBtn = document.getElementById("cancelEditBtn");
+    const saveStatus = document.getElementById("saveStatus");
+    const exportBtn = document.getElementById("exportBtn");
+    const importFile = document.getElementById("importFile");
+    const printSection = document.getElementById("printSection");
+
+    function createEmptySession(prayer, raka) {
+      return {
+        prayer,
+        raka,
+        title: "",
+        surah: "",
+        verses: "",
+        text: "",
+        audio: ""
+      };
+    }
+
+    function createEmptySessions() {
+      return PRAYERS.flatMap(prayer => RAKAS.map(raka => createEmptySession(prayer, raka.value)));
+    }
+
+    function clone(value) {
+      return JSON.parse(JSON.stringify(value));
+    }
+
+    function padDay(dayNumber) {
+      return String(dayNumber).padStart(2, "0");
+    }
+
+    function prayerSlug(prayer) {
+      const map = {
+        "الفجر": "fajr",
+        "المغرب": "maghrib",
+        "العشاء": "isha"
+      };
+
+      return map[prayer] || String(prayer).trim();
+    }
+
+    function getRakaLabel(rakaValue) {
+      return RAKAS.find(raka => raka.value === rakaValue)?.label || "الركعة";
+    }
+
+    function normalizeRakaValue(value) {
+      const raw = String(value ?? "").trim();
+
+      if (["r1", "1", "01", "الأولى", "الاولى", "اولى", "ركعة أولى", "ركعة اولى", "الركعة الأولى", "الركعة الاولى"].includes(raw)) {
+        return "r1";
+      }
+
+      if (["r2", "2", "02", "الثانية", "الثانيه", "ثانية", "ثانيه", "ركعة ثانية", "ركعة ثانيه", "الركعة الثانية", "الركعة الثانيه"].includes(raw)) {
+        return "r2";
+      }
+
+      return "";
+    }
+
+    function getAutoAudioPath(dayNumber, prayer, raka) {
+      return `audio/husary/day-${padDay(dayNumber)}-${prayerSlug(prayer)}-${raka}.mp3`;
+    }
+
+    function getAudioPath(session, dayNumber) {
+      return session.audio || getAutoAudioPath(dayNumber, session.prayer, session.raka);
+    }
+
+    function normalizeDayNumber(value) {
+      const number = Number(value);
+
+      if (!Number.isInteger(number)) return null;
+      if (number < 1 || number > TOTAL_DAYS) return null;
+
+      return number;
+    }
+
+    function goToRelativeDay(offset) {
+      const next = ((selectedDay - 1 + offset + TOTAL_DAYS) % TOTAL_DAYS) + 1;
+      renderDay(next);
+      setMode("view");
+    }
+
+    function updateProgressStrip() {
+      const current = getCycleDay();
+      const remaining = TOTAL_DAYS - current;
+      const percent = Math.round((current / TOTAL_DAYS) * 100);
+      const start = startDateInput.value || "غير محدد";
+
+      progressCurrent.textContent = `اليوم الحالي: ${current} / ${TOTAL_DAYS}`;
+      progressRemaining.textContent = `باقي على نهاية الدورة: ${remaining} يومًا`;
+      progressPercent.textContent = `نسبة الإنجاز: ${percent}%`;
+      progressStartDate.textContent = `تاريخ بداية الدورة: ${start}`;
+    }
+
+    function jumpToDayFromInput() {
+      const day = normalizeDayNumber(jumpDayInput.value);
+
+      if (!day) {
+        alert("أدخل رقم يوم صحيحًا من 1 إلى 60.");
+        return;
+      }
+
+      renderDay(day);
+      setMode("view");
+      jumpDayInput.value = "";
+    }
+
+    function cleanPlaceholderText(value) {
+      const text = String(value ?? "").trim();
+
+      const fakeTexts = [
+        "ضع نص آيات الفجر هنا.",
+        "ضع نص آيات المغرب هنا.",
+        "ضع نص آيات العشاء هنا.",
+        "أدخل عنوان المقطع هنا",
+        "اسم السورة",
+        "أرقام الآيات",
+        "اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ...",
+        "قُلْ يَا أَيُّهَا الْكَافِرُونَ...",
+        "قُلْ هُوَ اللَّهُ أَحَدٌ..."
+      ];
+
+      return fakeTexts.includes(text) ? "" : text;
+    }
+
+    function normalizePlan(plan) {
+      return Array.from({ length: TOTAL_DAYS }, (_, index) => {
+        const dayNumber = index + 1;
+        const sourceDay = Array.isArray(plan)
+          ? plan.find(item => Number(item.day) === dayNumber)
+          : null;
+
+        return {
+          day: dayNumber,
+          sessions: PRAYERS.flatMap(prayer => RAKAS.map(raka => {
+            const sourceSession = findSourceSession(sourceDay, prayer, raka.value) || {};
+
+            return {
+              prayer,
+              raka: raka.value,
+              title: cleanPlaceholderText(sourceSession.title),
+              surah: cleanPlaceholderText(sourceSession.surah),
+              verses: cleanPlaceholderText(sourceSession.verses),
+              text: cleanPlaceholderText(sourceSession.text),
+              audio: String(sourceSession.audio ?? "").trim()
+            };
+          }))
+        };
+      });
+    }
+
+    function findSourceSession(sourceDay, prayer, rakaValue) {
+      const sessions = Array.isArray(sourceDay?.sessions) ? sourceDay.sessions : [];
+
+      const exact = sessions.find(session =>
+        session.prayer === prayer &&
+        normalizeRakaValue(session.raka || session.rakah || session.rakaa || session.unit) === rakaValue
+      );
+
+      if (exact) return exact;
+
+      if (rakaValue === "r1") {
+        return sessions.find(session =>
+          session.prayer === prayer &&
+          !normalizeRakaValue(session.raka || session.rakah || session.rakaa || session.unit)
+        );
+      }
+
+      return null;
+    }
+
+    function loadPlan() {
+      const sources = [
+        STORAGE_PLAN,
+        OLD_STORAGE_PLAN_V4,
+        OLD_STORAGE_PLAN_V3,
+        OLD_STORAGE_PLAN_V2
+      ];
+
+      for (const key of sources) {
+        const saved = localStorage.getItem(key);
+
+        if (!saved) continue;
+
+        try {
+          const migrated = normalizePlan(JSON.parse(saved));
+          localStorage.setItem(STORAGE_PLAN, JSON.stringify(migrated));
+          return migrated;
+        } catch {}
+      }
+
+      return clone(defaultPlan);
+    }
+
+    function savePlan() {
+      localStorage.setItem(STORAGE_PLAN, JSON.stringify(quranPlan));
+      renderSearchResults();
+    }
+
+    function loadNotes() {
+      const savedV4 = localStorage.getItem(STORAGE_NOTES);
+      if (savedV4) {
+        try {
+          return JSON.parse(savedV4) || {};
+        } catch {
+          return {};
+        }
+      }
+
+      const migrated = {};
+
+      for (let day = 1; day <= TOTAL_DAYS; day++) {
+        const noteV3 = localStorage.getItem(`${OLD_NOTES_PREFIX_V3}${day}`);
+        const noteV2 = localStorage.getItem(`${OLD_NOTES_PREFIX_V2}${day}`);
+        const note = noteV3 || noteV2 || "";
+
+        if (note.trim()) {
+          migrated[String(day)] = note;
+        }
+      }
+
+      localStorage.setItem(STORAGE_NOTES, JSON.stringify(migrated));
+      return migrated;
+    }
+
+    function saveNotes() {
+      localStorage.setItem(STORAGE_NOTES, JSON.stringify(notesByDay));
+    }
+
+    function toISODate(date) {
+      return date.toISOString().slice(0, 10);
+    }
+
+    function parseLocalDate(value) {
+      const [year, month, day] = value.split("-").map(Number);
+      return new Date(year, month - 1, day);
+    }
+
+    function getCycleDay() {
+      const savedStart = localStorage.getItem(STORAGE_START_DATE) || toISODate(new Date());
+      const start = parseLocalDate(savedStart);
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const diff = Math.floor((today - start) / 86400000);
+      const normalized = ((diff % TOTAL_DAYS) + TOTAL_DAYS) % TOTAL_DAYS;
+      return normalized + 1;
+    }
+
+    function escapeHTML(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function normalizeArabic(value) {
+      return String(value ?? "")
+        .toLowerCase()
+        .replace(/[ًٌٍَُِّْـ]/g, "")
+        .replace(/[إأآا]/g, "ا")
+        .replace(/ى/g, "ي")
+        .replace(/ة/g, "ه")
+        .trim();
+    }
+
+    function isSessionEmpty(session) {
+      return !session.title && !session.surah && !session.verses && !session.text && !session.audio;
+    }
+
+    function audioHTML(path, isAutomatic = false) {
+      const intro = isAutomatic
+        ? `<div class="audio-missing">سيستخدم الموقع المسار التلقائي التالي إذا وضعت الملف بهذا الاسم:<br><code>${escapeHTML(path)}</code><br>إذا لم يعمل الصوت، فهذا يعني أن الملف غير موجود في هذا المسار بعد.</div>`
+        : '';
+
+      const failedMessage = isAutomatic
+        ? `ملف الصوت غير موجود بعد.<br>ضع الملف في هذا المسار ليعمل الصوت:<br><code>${escapeHTML(path)}</code>`
+        : `تعذر تحميل ملف الصوت أو الرابط.<br>تحقق من هذا المسار أو الرابط:<br><code>${escapeHTML(path)}</code>`;
+
+      return `
+        <div class="audio-box" data-audio-path="${escapeHTML(path)}">
+          <audio controls preload="metadata">
+            <source src="${escapeHTML(path)}" type="audio/mpeg">
+            المتصفح لا يدعم تشغيل الصوت.
+          </audio>
+          ${intro}
+          <div class="audio-failed hidden">${failedMessage}</div>
+        </div>
+      `;
+    }
+
+    function getDayData(dayNumber) {
+      return quranPlan.find(item => item.day === dayNumber);
+    }
+
+    function getSession(dayNumber, prayer, raka) {
+      const dayData = getDayData(dayNumber);
+      return dayData.sessions.find(session => session.prayer === prayer && session.raka === raka);
+    }
+
+    function buildDaysGrid() {
+      daysGrid.innerHTML = "";
+
+      for (let i = 1; i <= TOTAL_DAYS; i++) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "day-button";
+        button.textContent = i;
+        button.addEventListener("click", () => renderDay(i));
+        daysGrid.appendChild(button);
+      }
+    }
+
+    function buildPrayerTabs() {
+      prayerTabs.innerHTML = "";
+
+      PRAYERS.forEach(prayer => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "tab";
+        button.textContent = prayer;
+        button.addEventListener("click", () => {
+          selectedPrayer = prayer;
+          loadEditor();
+        });
+        prayerTabs.appendChild(button);
+      });
+    }
+
+    function markAudioFailed(audioElement) {
+      const box = audioElement.closest(".audio-box");
+      if (!box) return;
+
+      const failed = box.querySelector(".audio-failed");
+      const intro = box.querySelector(".audio-missing");
+
+      audioElement.classList.add("hidden");
+
+      if (intro) {
+        intro.classList.add("hidden");
+      }
+
+      if (failed) {
+        failed.classList.remove("hidden");
+      }
+    }
+
+    function initializeAudioElements() {
+      document.querySelectorAll(".audio-box audio").forEach(audio => {
+        audio.addEventListener("error", () => markAudioFailed(audio));
+
+        const source = audio.querySelector("source");
+        if (source) {
+          source.addEventListener("error", () => markAudioFailed(audio));
+        }
+
+        try {
+          audio.load();
+        } catch {
+          markAudioFailed(audio);
+        }
+      });
+    }
+
+    function renderSession(session) {
+      const empty = isSessionEmpty(session);
+      const rakaLabel = getRakaLabel(session.raka);
+      const dataAttrs = `data-prayer="${escapeHTML(session.prayer)}" data-raka="${escapeHTML(session.raka)}"`;
+
+      if (empty) {
+        return `
+          <article class="session-card" ${dataAttrs}>
+            <div class="session-header">
+              <div>
+                <div class="session-title-row">
+                  <div class="prayer">${escapeHTML(session.prayer)} — ${escapeHTML(rakaLabel)}</div>
+                </div>
+                <h3>لم تُدخل بيانات هذه الركعة بعد</h3>
+              </div>
+              <button class="small-btn secondary edit-session-btn" type="button" data-prayer="${escapeHTML(session.prayer)}" data-raka="${escapeHTML(session.raka)}">تعديل</button>
+            </div>
+            <div class="empty-session">لم تُدخل آيات هذه الركعة بعد.</div>
+          </article>
+        `;
+      }
+
+      const ref = [session.surah, session.verses].filter(Boolean).join(": ");
+      const audioPath = getAudioPath(session, selectedDay);
+      const isAutomaticAudio = !session.audio;
+
+      return `
+        <article class="session-card" ${dataAttrs}>
+          <div class="session-header">
+            <div>
+              <div class="session-title-row">
+                <div class="prayer">${escapeHTML(session.prayer)} — ${escapeHTML(rakaLabel)}</div>
+                <button class="small-btn secondary edit-session-btn" type="button" data-prayer="${escapeHTML(session.prayer)}" data-raka="${escapeHTML(session.raka)}">تعديل</button>
+              </div>
+              <h3>${escapeHTML(session.title || "بدون عنوان")}</h3>
+            </div>
+            <div class="ayah-ref">${escapeHTML(ref)}</div>
+          </div>
+          ${session.text ? `<div class="ayah-text">${escapeHTML(session.text)}</div>` : '<div class="empty-session">لم تُدخل نص الآيات بعد.</div>'}
+          ${audioHTML(audioPath, isAutomaticAudio)}
+        </article>
+      `;
+    }
+
+    function attachInlineEditButtons() {
+      document.querySelectorAll(".edit-session-btn").forEach(button => {
+        button.addEventListener("click", () => {
+          selectedPrayer = button.dataset.prayer;
+          selectedRaka = button.dataset.raka;
+          setMode("edit");
+        });
+      });
+    }
+
+    function renderDay(dayNumber) {
+      selectedDay = dayNumber;
+      const dayData = getDayData(dayNumber);
+
+      document.querySelectorAll(".day-button").forEach((button, index) => {
+        button.classList.toggle("active", index + 1 === dayNumber);
+      });
+
+      dayTitle.textContent = `اليوم ${dayNumber}`;
+      cycleBadge.textContent = `${dayNumber} / ${TOTAL_DAYS}`;
+
+      const currentCycleDay = getCycleDay();
+
+      if (currentCycleDay === dayNumber) {
+        dayEyebrow.textContent = "ورد اليوم من الدورة";
+        dayMeta.textContent = "هذا هو ورد اليوم الحالي بحسب تاريخ بداية الدورة.";
+      } else {
+        dayEyebrow.textContent = "يوم آخر من الخطة";
+        dayMeta.textContent = `أنت تعرض يومًا آخر من الخطة، واليوم الحالي المحسوب هو اليوم رقم ${currentCycleDay}.`;
+      }
+
+      updateProgressStrip();
+
+      sessionsContainer.innerHTML = dayData.sessions.map(renderSession).join("");
+      attachInlineEditButtons();
+      initializeAudioElements();
+
+      notesArea.value = notesByDay[String(dayNumber)] || "";
+      loadEditor();
+    }
+
+    function setMode(nextMode) {
+      mode = nextMode;
+      viewSection.classList.toggle("hidden", mode !== "view");
+      editSection.classList.toggle("hidden", mode !== "edit");
+      viewModeBtn.classList.toggle("secondary", mode !== "view");
+      editModeBtn.classList.toggle("secondary", mode !== "edit");
+      saveStatus.textContent = "";
+
+      if (mode === "edit") {
+        loadEditor();
+        setTimeout(() => editTitle.focus(), 50);
+      }
+    }
+
+    function loadEditor() {
+      if (!prayerTabs.children.length) return;
+
+      [...prayerTabs.children].forEach(button => {
+        button.classList.toggle("active", button.textContent === selectedPrayer);
+      });
+
+      editHeading.textContent = `تحرير اليوم ${selectedDay} — ${selectedPrayer} — ${getRakaLabel(selectedRaka)}`;
+      editPrayer.value = selectedPrayer;
+      editRaka.value = selectedRaka;
+
+      const session = getSession(selectedDay, selectedPrayer, selectedRaka);
+
+      editTitle.value = session?.title || "";
+      editSurah.value = session?.surah || "";
+      editVerses.value = session?.verses || "";
+      editText.value = session?.text || "";
+      editAudio.value = session?.audio || "";
+    }
+
+    function saveCurrentSession({ stayInEdit = false } = {}) {
+      selectedPrayer = editPrayer.value;
+      selectedRaka = editRaka.value;
+
+      const dayData = getDayData(selectedDay);
+      const index = dayData.sessions.findIndex(session => session.prayer === selectedPrayer && session.raka === selectedRaka);
+
+      const newSession = {
+        prayer: selectedPrayer,
+        raka: selectedRaka,
+        title: editTitle.value.trim(),
+        surah: editSurah.value.trim(),
+        verses: editVerses.value.trim(),
+        text: editText.value.trim(),
+        audio: editAudio.value.trim()
+      };
+
+      if (index >= 0) {
+        dayData.sessions[index] = newSession;
+      } else {
+        dayData.sessions.push(newSession);
+      }
+
+      dayData.sessions = normalizePlan([dayData])[0].sessions;
+
+      savePlan();
+      renderDay(selectedDay);
+
+      if (stayInEdit) {
+        setMode("edit");
+        saveStatus.textContent = "تم الحفظ.";
+      } else {
+        setMode("view");
+      }
+    }
+
+    function clearCurrentSession() {
+      const ok = confirm(`هل تريد تفريغ ${selectedPrayer} — ${getRakaLabel(selectedRaka)} في اليوم ${selectedDay} وحفظ التفريغ؟`);
+      if (!ok) return;
+
+      editTitle.value = "";
+      editSurah.value = "";
+      editVerses.value = "";
+      editText.value = "";
+      editAudio.value = "";
+
+      saveCurrentSession({ stayInEdit: true });
+      saveStatus.textContent = "تم تفريغ المقطع وحفظه.";
+    }
+
+    function exportPlan() {
+      const payload = {
+        version: "4.1.3",
+        exportedAt: new Date().toISOString(),
+        totalDays: TOTAL_DAYS,
+        structure: "six-sessions-per-day-two-rakat",
+        startDate: startDateInput.value,
+        plan: quranPlan,
+        notes: notesByDay
+      };
+
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+
+      link.href = url;
+      link.download = "quran-schedule-backup-v4-1-3.json";
+      link.click();
+
+      URL.revokeObjectURL(url);
+    }
+
+    function importPlanFile(file) {
+      const reader = new FileReader();
+
+      reader.onload = () => {
+        try {
+          const data = JSON.parse(reader.result);
+          const importedPlan = Array.isArray(data) ? data : data.plan;
+
+          if (!Array.isArray(importedPlan)) {
+            alert("ملف النسخة غير صالح.");
+            return;
+          }
+
+          quranPlan = normalizePlan(importedPlan);
+
+          if (data.notes && typeof data.notes === "object") {
+            notesByDay = data.notes;
+          }
+
+          if (data.startDate) {
+            startDateInput.value = data.startDate;
+            localStorage.setItem(STORAGE_START_DATE, data.startDate);
+          }
+
+          savePlan();
+          saveNotes();
+          renderDay(getCycleDay());
+          renderSearchResults();
+          updateProgressStrip();
+
+          alert("تم استيراد النسخة بنجاح.");
+        } catch {
+          alert("تعذر قراءة الملف. تأكد أنه ملف JSON صحيح.");
+        }
+      };
+
+      reader.readAsText(file);
+    }
+
+    function getSearchMatches(query) {
+      const q = normalizeArabic(query);
+
+      if (!q) return [];
+
+      const matches = [];
+
+      quranPlan.forEach(day => {
+        day.sessions.forEach(session => {
+          const audioPath = getAudioPath(session, day.day);
+          const rakaLabel = getRakaLabel(session.raka);
+
+          const searchable = normalizeArabic([
+            day.day,
+            session.prayer,
+            session.raka,
+            rakaLabel,
+            session.title,
+            session.surah,
+            session.verses,
+            session.text,
+            session.audio,
+            audioPath
+          ].join(" "));
+
+          if (searchable.includes(q)) {
+            matches.push({
+              day: day.day,
+              prayer: session.prayer,
+              raka: session.raka,
+              rakaLabel,
+              title: session.title,
+              surah: session.surah,
+              verses: session.verses
+            });
+          }
+        });
+      });
+
+      return matches;
+    }
+
+    function renderSearchResults() {
+      const query = searchInput.value;
+      const matches = getSearchMatches(query);
+
+      if (!query.trim()) {
+        searchResults.innerHTML = '<p class="hint">اكتب كلمة للبحث في العنوان، السورة، الآيات، النص، الصلاة، الركعة، أو مسار الصوت.</p>';
+        return;
+      }
+
+      if (!matches.length) {
+        searchResults.innerHTML = '<p class="hint">لا توجد نتائج مطابقة.</p>';
+        return;
+      }
+
+      searchResults.innerHTML = matches.slice(0, 30).map(match => {
+        const ref = [match.surah, match.verses].filter(Boolean).join(": ");
+        const label = ref || match.title || "مقطع بلا عنوان";
+
+        return `
+          <button class="search-result" type="button" data-day="${match.day}" data-prayer="${escapeHTML(match.prayer)}" data-raka="${escapeHTML(match.raka)}">
+            <strong>اليوم ${match.day}</strong> — ${escapeHTML(match.prayer)} — ${escapeHTML(match.rakaLabel)} — ${escapeHTML(label)}
+          </button>
+        `;
+      }).join("");
+
+      document.querySelectorAll(".search-result").forEach(button => {
+        button.addEventListener("click", () => {
+          selectedPrayer = button.dataset.prayer;
+          selectedRaka = button.dataset.raka;
+          renderDay(Number(button.dataset.day));
+          setMode("view");
+
+          const card = document.querySelector(`.session-card[data-prayer="${button.dataset.prayer}"][data-raka="${button.dataset.raka}"]`);
+          if (card) {
+            card.classList.add("highlight-session");
+            setTimeout(() => card.classList.remove("highlight-session"), 1600);
+          }
+
+          document.querySelector(".content").scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      });
+    }
+
+    function renderPrintSection() {
+      const start = startDateInput.value || "غير محدد";
+      const generatedAt = new Date().toLocaleDateString("ar-SA");
+
+      const daysHTML = quranPlan.map(day => {
+        const note = notesByDay[String(day.day)] || "";
+
+        const prayersHTML = PRAYERS.map(prayer => {
+          const sessionsHTML = RAKAS.map(raka => {
+            const session = day.sessions.find(item => item.prayer === prayer && item.raka === raka.value) || {};
+            const ref = [session.surah, session.verses].filter(Boolean).join(": ");
+            const title = session.title || "";
+            const text = session.text || "";
+
+            return `
+              <div class="print-session">
+                <h4>${escapeHTML(raka.label)}${ref ? ` — ${escapeHTML(ref)}` : ""}</h4>
+                ${title ? `<p><strong>العنوان:</strong> ${escapeHTML(title)}</p>` : ""}
+                ${text ? `<div class="print-ayah">${escapeHTML(text)}</div>` : "<p>لم تُدخل آيات هذه الركعة بعد.</p>"}
+              </div>
+            `;
+          }).join("");
+
+          return `
+            <div class="print-prayer">
+              <h3>${escapeHTML(prayer)}</h3>
+              ${sessionsHTML}
+            </div>
+          `;
+        }).join("");
+
+        return `
+          <section class="print-day">
+            <h2>اليوم ${day.day}</h2>
+            ${prayersHTML}
+            ${note ? `<p><strong>ملاحظات اليوم:</strong> ${escapeHTML(note)}</p>` : ""}
+          </section>
+        `;
+      }).join("");
+
+      printSection.innerHTML = `
+        <h1>خطة حفظ آيات الصلاة — 60 يومًا</h1>
+        <p class="print-meta">تاريخ بداية الدورة: ${escapeHTML(start)} — تاريخ الطباعة: ${escapeHTML(generatedAt)}</p>
+        ${daysHTML}
+      `;
+    }
+
+    function printFullPlan() {
+      renderPrintSection();
+      window.print();
+    }
+
+    function initStartDate() {
+      const savedStart = localStorage.getItem(STORAGE_START_DATE);
+      const oldStartV3 = localStorage.getItem("quranScheduleStartDate_v3");
+      const oldStartV2 = localStorage.getItem("quranScheduleStartDate_v2");
+      const today = toISODate(new Date());
+
+      startDateInput.value = savedStart || oldStartV3 || oldStartV2 || today;
+
+      if (!savedStart) {
+        localStorage.setItem(STORAGE_START_DATE, startDateInput.value);
+      }
+
+      startDateInput.addEventListener("change", () => {
+        localStorage.setItem(STORAGE_START_DATE, startDateInput.value);
+        renderDay(getCycleDay());
+        updateProgressStrip();
+      });
+    }
+
+    todayBtn.addEventListener("click", () => {
+      renderDay(getCycleDay());
+      setMode("view");
+    });
+
+    currentCycleBtn.addEventListener("click", () => {
+      renderDay(getCycleDay());
+      setMode("view");
+    });
+
+    prevDayBtn.addEventListener("click", () => goToRelativeDay(-1));
+    nextDayBtn.addEventListener("click", () => goToRelativeDay(1));
+    jumpDayBtn.addEventListener("click", jumpToDayFromInput);
+    jumpDayInput.addEventListener("keydown", event => {
+      if (event.key === "Enter") jumpToDayFromInput();
+    });
+    printPlanBtn.addEventListener("click", printFullPlan);
+
+    viewModeBtn.addEventListener("click", () => setMode("view"));
+    editModeBtn.addEventListener("click", () => setMode("edit"));
+    cancelEditBtn.addEventListener("click", () => setMode("view"));
+
+    editPrayer.addEventListener("change", () => {
+      selectedPrayer = editPrayer.value;
+      loadEditor();
+    });
+
+    editRaka.addEventListener("change", () => {
+      selectedRaka = editRaka.value;
+      loadEditor();
+    });
+
+    saveSessionBtn.addEventListener("click", () => saveCurrentSession());
+    clearSessionBtn.addEventListener("click", clearCurrentSession);
+    exportBtn.addEventListener("click", exportPlan);
+
+    importFile.addEventListener("change", event => {
+      const file = event.target.files?.[0];
+
+      if (file) {
+        importPlanFile(file);
+      }
+
+      event.target.value = "";
+    });
+
+    notesArea.addEventListener("input", () => {
+      const value = notesArea.value.trim();
+
+      if (value) {
+        notesByDay[String(selectedDay)] = notesArea.value;
+      } else {
+        delete notesByDay[String(selectedDay)];
+      }
+
+      saveNotes();
+    });
+
+    searchInput.addEventListener("input", renderSearchResults);
+
+    initStartDate();
+    buildDaysGrid();
+    buildPrayerTabs();
+    renderDay(getCycleDay());
+    renderSearchResults();
+    updateProgressStrip();
+    setMode("view");
+  </script>
+</body>
+</html>
